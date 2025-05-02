@@ -1,6 +1,6 @@
 // Import required modules
 const express = require('express');
-const { MessengerBot } = require('fb-messenger-bot-api');
+const botInit = require('fb-messenger-bot-api');
 
 // Environment variables (replace with your actual tokens)
 const PAGE_ACCESS_TOKEN = 'EAAJKNZCvB0f0BO4ucP5wjGZBg8Egm1K0ZBmWXKTQVPQdgWqenbGrZAZA1dSWhZBCgLZAlZBFeL9RZB4QV2oaM1KElJ95xR3Y6ZAdDaFDlgAZBVFXbkawSWyQFeoaZBoMVnt1qM5PDdA2A8GjbeilxJ2ExdFdHKJ6PqE0u1Lq4tEPrZBYrKh9zi92TQx5AAlgOAMBzZB1FV3aELg1p25fe7Qxqb';
@@ -27,7 +27,7 @@ const app = express();
 app.use(express.json());
 
 // Initialize Messenger Bot
-const bot = new MessengerBot(PAGE_ACCESS_TOKEN);
+const bot = new botInit.FacebookMessagingAPIClient(PAGE_ACCESS_TOKEN);
 
 // Add a simple state management object
 const userStates = {}; // To track user states
