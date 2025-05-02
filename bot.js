@@ -4,7 +4,7 @@ const botInit = require('fb-messenger-bot-api');
 
 // Environment variables (replace with your actual tokens)
 const PAGE_ACCESS_TOKEN = 'EAAJKNZCvB0f0BO4ucP5wjGZBg8Egm1K0ZBmWXKTQVPQdgWqenbGrZAZA1dSWhZBCgLZAlZBFeL9RZB4QV2oaM1KElJ95xR3Y6ZAdDaFDlgAZBVFXbkawSWyQFeoaZBoMVnt1qM5PDdA2A8GjbeilxJ2ExdFdHKJ6PqE0u1Lq4tEPrZBYrKh9zi92TQx5AAlgOAMBzZB1FV3aELg1p25fe7Qxqb';
-const VERIFY_TOKEN = 'your_verify_token';
+const VERIFY_TOKEN = '7biMS3DYbyl9AD6LvKVhplXcvzYgRP8JQf8wCZmdDUolaXmuUm0sYQACQRpgH9Uj';
 const PORT = process.env.PORT || 3000;
 
 const WELCOME = 'Welcome to our chatbot!';
