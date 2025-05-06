@@ -22,6 +22,38 @@ const ASK_PHOTO_GOVERNMENT_ID_INVALID = 'Please only upload JPG, PNG, and WEBP f
 const THANK_YOU = 'Thank you for your responses! We will process your information.';
 const END = 'END';
 
+// Add a pseudo-database for valid names
+const validNames = ['John Christopher De Jesus', 'Jane Doe', 'Alice Smith'];
+
+// Add a pseudo-database for valid usernames
+const validUsernames = ['johnchristopherdejesus', 'janedoe', 'alicesmith'];
+
+// Add a pseudo-database for valid mobile numbers
+const validMobileNumbers = ['09123456789', '09234567890', '09345678901'];
+
+// Add a pseudo-database for valid birthdates
+const validBirthdates = ['12/31/2000', '01/01/1990', '05/06/2025'];
+
+// Function to check if the name is valid
+function isValidName(name) {
+  return validNames.includes(name);
+}
+
+// Function to check if the username is valid
+function isValidUsername(username) {
+  return validUsernames.includes(username);
+}
+
+// Function to check if the mobile number is valid
+function isValidMobileNumber(mobileNumber) {
+  return validMobileNumbers.includes(mobileNumber);
+}
+
+// Function to check if the birthdate is valid
+function isValidBirthdate(birthdate) {
+  return validBirthdates.includes(birthdate);
+}
+
 // Initialize Express app
 const app = express();
 app.use(express.json());
@@ -74,9 +106,107 @@ app.post('/webhook', async (req, res) => {
           } else {
             await bot.sendTextMessage(senderId, 'Please respond with "yes" or "no".');
           }
-        } else if (userStates[senderId] === 'awaiting_name') {
-          userStates[senderId] = 'awaiting_username';
-          await bot.sendTextMessage(senderId, ASK_USERNAME);
+        } else if (userStates[senderId] && userStates[senderId].state === 'awaiting_name') {
+          const userMessage = event.message.text;
+
+          if (!userStates[senderId].retries) {
+            userStates[senderId].retries = 0;
+          }
+
+          if (isValidName(userMessage)) {
+            userStates[senderId] = { state: 'awaiting_username' };
+            await bot.sendTextMessage(senderId, ASK_USERNAME);
+          } else {
+            userStates[senderId].retries += 1;
+
+            if (userStates[senderId].retries >= 3) {
+              userStates[senderId] = null; // End the conversation
+              await bot.sendTextMessage(senderId, 'Maximum retries reached. Please start over.');
+            } else {
+              await bot.sendTextMessage(senderId, 'Invalid name. Please try again.');
+              await bot.sendTextMessage(senderId, ASK_NAME);
+            }
+          }
+        } else if (userStates[senderId] && userStates[senderId].state === 'awaiting_username') {
+          const userMessage = event.message.text;
+
+          if (!userStates[senderId].retries) {
+            userStates[senderId].retries = 0;
+          }
+
+          if (isValidUsername(userMessage)) {
+            userStates[senderId] = { state: 'awaiting_mobile' };
+            await bot.sendTextMessage(senderId, ASK_MOBILE);
+          } else {
+            userStates[senderId].retries += 1;
+
+            if (userStates[senderId].retries >= 3) {
+              userStates[senderId] = null; // End the conversation
+              await bot.sendTextMessage(senderId, 'Maximum retries reached. Please start over.');
+            } else {
+              await bot.sendTextMessage(senderId, 'Invalid username. Please try again.');
+              await bot.sendTextMessage(senderId, ASK_USERNAME);
+            }
+          }
+        } else if (userStates[senderId] && userStates[senderId].state === 'awaiting_mobile') {
+          const userMessage = event.message.text;
+
+          if (!userStates[senderId].retries) {
+            userStates[senderId].retries = 0;
+          }
+
+          if (isValidMobileNumber(userMessage)) {
+            userStates[senderId] = { state: 'awaiting_birthmonth' };
+            await bot.sendTextMessage(senderId, ASK_BIRTHMONTH);
+          } else {
+            userStates[senderId].retries += 1;
+
+            if (userStates[senderId].retries >= 3) {
+              userStates[senderId] = null; // End the conversation
+              await bot.sendTextMessage(senderId, 'Maximum retries reached. Please start over.');
+            } else {
+              await bot.sendTextMessage(senderId, 'Invalid mobile number. Please try again.');
+              await bot.sendTextMessage(senderId, ASK_MOBILE);
+            }
+          }
+        } else if (userStates[senderId] && userStates[senderId].state === 'awaiting_birthmonth') {
+          const userMessage = event.message.text;
+
+          if (!userStates[senderId].birthDetails) {
+            userStates[senderId].birthDetails = { retries: 0 };
+          }
+
+          userStates[senderId].birthDetails.month = userMessage;
+          userStates[senderId].state = 'awaiting_birthday';
+          await bot.sendTextMessage(senderId, ASK_BIRTHDAY);
+        } else if (userStates[senderId] && userStates[senderId].state === 'awaiting_birthday') {
+          const userMessage = event.message.text;
+
+          userStates[senderId].birthDetails.day = userMessage;
+          userStates[senderId].state = 'awaiting_birthyear';
+          await bot.sendTextMessage(senderId, ASK_BIRTHYEAR);
+        } else if (userStates[senderId] && userStates[senderId].state === 'awaiting_birthyear') {
+          const userMessage = event.message.text;
+
+          userStates[senderId].birthDetails.year = userMessage;
+          const { month, day, year, retries } = userStates[senderId].birthDetails;
+          const birthdate = `${month}/${day}/${year}`;
+
+          if (isValidBirthdate(birthdate)) {
+            userStates[senderId] = { state: 'awaiting_photo_receipt' };
+            await bot.sendTextMessage(senderId, ASK_PHOTO_RECEIPT);
+          } else {
+            userStates[senderId].birthDetails.retries += 1;
+
+            if (userStates[senderId].birthDetails.retries >= 3) {
+              userStates[senderId] = null; // End the conversation
+              await bot.sendTextMessage(senderId, 'Maximum retries reached. Please start over.');
+            } else {
+              userStates[senderId].state = 'awaiting_birthmonth';
+              await bot.sendTextMessage(senderId, 'Invalid birthdate. Please try again.');
+              await bot.sendTextMessage(senderId, ASK_BIRTHMONTH);
+            }
+          }
         } else if (userStates[senderId] === 'awaiting_username') {
           userStates[senderId] = 'awaiting_mobile';
           await bot.sendTextMessage(senderId, ASK_MOBILE);
